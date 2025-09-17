@@ -207,7 +207,7 @@ GameObject:
   - component: {fileID: 304836945}
   - component: {fileID: 304836944}
   m_Layer: 0
-  m_Name: neighbourhood_0
+  m_Name: Road
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1169,7 +1169,7 @@ GameObject:
   - component: {fileID: 939289662}
   - component: {fileID: 939289661}
   m_Layer: 0
-  m_Name: 512grassblock_0
+  m_Name: Grass Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1227,7 +1227,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 2
-  m_Size: {x: 50, y: 50}
+  m_Size: {x: 80, y: 80}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
