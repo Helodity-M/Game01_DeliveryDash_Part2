@@ -40,7 +40,7 @@ public class AudioStateMachine : MonoBehaviour
             timeSinceLastTransitionPoint += Time.deltaTime;
             if(timeSinceLastTransitionPoint > States[(int)currentState].TransitionPoint)
             {
-                timeSinceLastTransitionPoint = 0;
+                timeSinceLastTransitionPoint -= States[(int)currentState].TransitionPoint;
                 OnTransitionStart();
             }
         } else
