@@ -40,7 +40,9 @@ public class Driver : MonoBehaviour
     private void Awake()
     {
         rb2d = GetComponent<Rigidbody2D>();
+        Delivery.OnPickup += Delivery_OnPickup;
     }
+
     private void Update()
     {
         if (accelerationTime > 0)
@@ -142,14 +144,13 @@ public class Driver : MonoBehaviour
         accelerationTime = Mathf.Min(0, Mathf.Abs(accelerationTime - 0.3f)) * Mathf.Sign(accelerationTime);
     }
 
-    public void OnTriggerEnter2D(Collider2D collision)
+    private void Delivery_OnPickup(string pickupType)
     {
-        if (collision.CompareTag("Boost"))
+        if (pickupType == "Boost")
         {
             //If you are going really slow, get up to speed
             accelerationTime = Mathf.Max(0.5f, accelerationTime) * Mathf.Sign(accelerationTime);
             boostTimeRemaining = BoostDuration;
-            Destroy(collision.gameObject);
         }
     }
     public float getMovementCurve()

@@ -6,6 +6,10 @@ public class Delivery : MonoBehaviour
 
     bool hasPackage = false;
 
+    //Events
+    public delegate void PickupDelegate(string pickupType);
+    public static event PickupDelegate OnPickup;
+
     private void Awake()
     {
         PackageParticles.Stop();
@@ -18,13 +22,21 @@ public class Delivery : MonoBehaviour
             Debug.Log("Grabbed Package");
             hasPackage = true;
             PackageParticles.Play();
-            Destroy(collision.gameObject, 0.2f);
+            Destroy(collision.gameObject);
+            OnPickup?.Invoke("Package");
         }
         if (hasPackage && collision.CompareTag("Customer"))
         {
             Debug.Log("Touched Customer");
             PackageParticles.Stop();
             hasPackage = false;
+            Destroy(collision.gameObject);
+            OnPickup?.Invoke("Customer");
+        }
+        if (collision.CompareTag("Boost"))
+        {
+            OnPickup?.Invoke("Boost");
+            Destroy(collision.gameObject);
         }
     }
 }
