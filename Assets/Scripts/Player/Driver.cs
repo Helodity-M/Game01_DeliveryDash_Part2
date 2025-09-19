@@ -35,6 +35,7 @@ public class Driver : MonoBehaviour
     bool isDrifting = false;
     bool tryingToSlowdown = false;
     bool isBraking = false;
+    bool isSpinningOut = false;
 
     private void Awake()
     {
@@ -68,51 +69,71 @@ public class Driver : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Vector2 input = new Vector2(-Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-        tryingToSlowdown = Mathf.Abs(input.y - accelerationTime) > Mathf.Abs(input.y);
-        isBraking = Mathf.Abs(input.y - accelerationTime) > 1;
-
-        //Use decelerationSpeed if we are currently trying to slow down
-        float accelerationChange = (isBraking ? brakeSpeed : (tryingToSlowdown ? decelerationSpeed : accelerationSpeed)) * Time.deltaTime;
-        accelerationChange = Mathf.Min(accelerationChange, Mathf.Abs(input.y - accelerationTime));
-        if (input.y < accelerationTime)
-        {
-            //Moving in reverse
-            accelerationChange *= -1;
-        }
+        Vector2 input = GetInput();
+        float accelerationChange = GetAccelerationChange(input.y);
         accelerationTime += accelerationChange;
-        if (isDrifting)
-        {
-            accelerationTime -= driftDeceleration * Time.deltaTime;
-        }
-
 
         float moveAmount = getMovementCurve() * moveSpeed;
-       
         float steerAmount = Mathf.Abs(getMovementCurve()) * (steerSpeed + (Mathf.Min(1,Mathf.Abs(getMovementCurve())) * moveSteerRatio)) * Time.fixedDeltaTime * input.x;
+
+        Vector2 netDirection = GetAccelerationDirection();
+
+        rb2d.MoveRotation(rb2d.rotation + steerAmount);
+        rb2d.linearVelocity = netDirection * moveAmount;
+
+        UpdateBrakingStatus();
+        boostTimeRemaining -= Time.fixedDeltaTime;
+    }
+    private Vector2 GetInput()
+    {
+        return new Vector2(-Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+    }
+    private void UpdateBrakingStatus()
+    {
+        Vector2 input = GetInput();
+        tryingToSlowdown = Mathf.Abs(input.y - accelerationTime) > Mathf.Abs(input.y);
+        isBraking = Mathf.Abs(input.y - accelerationTime) > 1;
 
         Vector2 driveDir = (Vector2)transform.up;
         Vector2 slipVal = rb2d.linearVelocity * slipAmount.Evaluate(accelerationTime);
         float dot = Vector2.Dot(driveDir.normalized, slipVal.normalized);
         isDrifting = dot <= DriftThreshold && accelerationTime > 0.2f;
+        isSpinningOut = dot < 0;
+    }
+    private float GetAccelerationChange(float targetTime)
+    {
+        //Determine which base speed to use
+        float accelerationChange = (isBraking ? brakeSpeed : (tryingToSlowdown ? decelerationSpeed : accelerationSpeed)) * Time.fixedDeltaTime;
+        //Clamp the speed change to not overshoot
+        accelerationChange = Mathf.Min(accelerationChange, Mathf.Abs(targetTime - accelerationTime));
+
+        //Moving in reverse
+        if (targetTime < accelerationTime)
+        {
+            accelerationChange *= -1;
+        }
+
+        //Drifting deceleration
         if (isDrifting)
         {
-            if (dot < 0)
+            //Base drift deceleration
+            accelerationChange -= driftDeceleration * Time.fixedDeltaTime;
+
+            //Spinning out, apply a strong slowdown.
+            if (isSpinningOut)
             {
                 accelerationTime -= 25 * driftDeceleration * Time.fixedDeltaTime;
             }
-            
-            //Not Accelerating mid drift
-            if(input.y <= 0)
-            {
-                accelerationTime -= (1 - Mathf.Abs(dot)) * driftDeceleration * Time.fixedDeltaTime;
-            }
         }
-        Vector2 netDirection = (driveDir + slipVal).normalized;
-        rb2d.MoveRotation(rb2d.rotation + steerAmount);
-        rb2d.linearVelocity = netDirection * moveAmount;
+        return accelerationChange;
+    }
 
-        boostTimeRemaining -= Time.fixedDeltaTime;
+    private Vector2 GetAccelerationDirection()
+    {
+        Vector2 driveDir = (Vector2)transform.up;
+        Vector2 slipVal = rb2d.linearVelocity * slipAmount.Evaluate(accelerationTime);
+
+        return (driveDir + slipVal).normalized;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -125,7 +146,6 @@ public class Driver : MonoBehaviour
     {
         if (collision.CompareTag("Boost"))
         {
-            Debug.Log("Boost");
             //If you are going really slow, get up to speed
             accelerationTime = Mathf.Max(0.5f, accelerationTime) * Mathf.Sign(accelerationTime);
             boostTimeRemaining = BoostDuration;
