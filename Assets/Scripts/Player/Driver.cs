@@ -8,6 +8,11 @@ public class Driver : MonoBehaviour
     [SerializeField] float moveSpeed = 0.03f;
     [SerializeField] float moveSteerRatio = -5f;
 
+    [Header("Boost")]
+    [SerializeField] float BoostDuration = 2;
+    [SerializeField] float BoostMultiplier = 1.5f;
+    float boostTimeRemaining = 0;
+
     [Header("Acceleration")]
     [SerializeField] AnimationCurve accelerationCurve;
     [SerializeField] AnimationCurve reverseCurve;
@@ -84,7 +89,7 @@ public class Driver : MonoBehaviour
 
         float moveAmount = getMovementCurve() * moveSpeed;
        
-        float steerAmount = Mathf.Abs(getMovementCurve()) * (steerSpeed + (Mathf.Abs(getMovementCurve()) * moveSteerRatio)) * Time.fixedDeltaTime * input.x;
+        float steerAmount = Mathf.Abs(getMovementCurve()) * (steerSpeed + (Mathf.Min(1,Mathf.Abs(getMovementCurve())) * moveSteerRatio)) * Time.fixedDeltaTime * input.x;
 
         Vector2 driveDir = (Vector2)transform.up;
         Vector2 slipVal = rb2d.linearVelocity * slipAmount.Evaluate(accelerationTime);
@@ -106,6 +111,8 @@ public class Driver : MonoBehaviour
         Vector2 netDirection = (driveDir + slipVal).normalized;
         rb2d.MoveRotation(rb2d.rotation + steerAmount);
         rb2d.linearVelocity = netDirection * moveAmount;
+
+        boostTimeRemaining -= Time.fixedDeltaTime;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -114,6 +121,17 @@ public class Driver : MonoBehaviour
         accelerationTime = Mathf.Min(0, Mathf.Abs(accelerationTime - 0.3f)) * Mathf.Sign(accelerationTime);
     }
 
+    public void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Boost"))
+        {
+            Debug.Log("Boost");
+            //If you are going really slow, get up to speed
+            accelerationTime = Mathf.Max(0.5f, accelerationTime) * Mathf.Sign(accelerationTime);
+            boostTimeRemaining = BoostDuration;
+            Destroy(collision.gameObject);
+        }
+    }
     public float getMovementCurve()
     {
         float curveVal = 0;
@@ -125,7 +143,10 @@ public class Driver : MonoBehaviour
         {
             curveVal = -reverseCurve.Evaluate(-accelerationTime);
         }
-
+        if(boostTimeRemaining > 0)
+        {
+            curveVal *= BoostMultiplier;
+        }
         return curveVal;
     }
 

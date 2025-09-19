@@ -13,7 +13,7 @@ public class SpedometerUI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float targetRotation = Mathf.Lerp(minRotation, maxRotation, Mathf.Abs(Driver.getMovementCurve()));
+        float targetRotation = Mathf.LerpUnclamped(minRotation, maxRotation, Mathf.Abs(Driver.getMovementCurve()));
 
         curRotation = Mathf.Lerp(curRotation, targetRotation, Time.deltaTime * snapSpeed);
         BarImg.SetPositionAndRotation(BarImg.position, Quaternion.Euler(0, 0, curRotation));
