@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6794682045722147761}
   - component: {fileID: 4268622804022620679}
   - component: {fileID: 8887083616633871390}
+  - component: {fileID: 3409280672638996985}
   m_Layer: 0
   m_Name: Package Pickup
   m_TagString: Pickup
@@ -137,7 +138,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 6.12, y: 4.92}
+  m_Size: {x: 6.12, y: 6.17}
   m_EdgeRadius: 0
 --- !u!198 &4268622804022620679
 ParticleSystem:
@@ -4942,3 +4943,17 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &3409280672638996985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1507199528288723530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdedc747bfa5aa14db41a4bf65a553c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PickupMovement
+  BobAmount: 0.3
+  BobSpeed: 4
